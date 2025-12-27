@@ -68,3 +68,25 @@ func (s *Service) CreateRoute(ctx context.Context, creatorID string, input Creat
 
 	return newRoute, nil
 }
+
+// GetMyRoutes devuelve las rutas asignadas al ID del conductor
+func (s *Service) GetMyRoutes(ctx context.Context, driverID string) ([]domain.Route, error) {
+	return s.repo.FindAllByDriver(ctx, driverID)
+}
+
+func (s *Service) UpdateRouteStatus(ctx context.Context, routeID string, statusStr string) error {
+	// 1. Convertir string a tipo RouteStatus
+	status := domain.RouteStatus(statusStr)
+
+	// 2. Validar que sea un estado permitido para el conductor
+	// (El conductor solo debería poder poner IN_PROGRESS o COMPLETED)
+	switch status {
+	case domain.RouteStatusInProgress, domain.RouteStatusCompleted:
+		// OK
+	default:
+		return errors.New("estado inválido: solo se permite 'in_progress' o 'completed'")
+	}
+
+	// 3. Llamar al repositorio
+	return s.repo.UpdateStatus(ctx, routeID, status)
+}
