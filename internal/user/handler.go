@@ -111,31 +111,39 @@ type syncUserRequest struct {
 }
 
 // SyncUser recibe los datos del usuario logueado en Next.js y los guarda en nuestra BD
+// internal/user/handler.go
+
 func (h *Handler) SyncUser(w http.ResponseWriter, r *http.Request) {
 	var req syncUserRequest
 
-	// 1. Decodificar el JSON del cuerpo de la petición
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "JSON inválido", http.StatusBadRequest)
+	// 1. Obtener ID del Token (FUENTE DE VERDAD)
+	tokenUserID, err := appMiddleware.GetUserID(r.Context())
+
+	if err != nil || tokenUserID == "" {
+		http.Error(w, "Usuario no autenticado o token sin ID", http.StatusUnauthorized)
 		return
 	}
 
-	// 2. Validar ID (UUID)
-	uid, err := uuid.Parse(req.ID)
+	// 2. Intentar leer datos extra del Body (si existen)
+	if r.Body != nil {
+		_ = json.NewDecoder(r.Body).Decode(&req)
+	}
+
+	// 3. Validar ID del TOKEN
+	uid, err := uuid.Parse(tokenUserID)
 	if err != nil {
-		http.Error(w, "ID de usuario inválido", http.StatusBadRequest)
+		http.Error(w, "El ID dentro del token no es un UUID válido", http.StatusInternalServerError)
 		return
 	}
 
-	// 3. Llamar al servicio
+	// 4. Llamar al servicio RESTAURADO
 	user, err := h.service.SyncUser(r.Context(), uid, req.Email, req.FullName, req.AvatarURL)
 	if err != nil {
-		// En un caso real, no devolveríamos el error crudo por seguridad, pero para dev sirve
 		http.Error(w, "Error al sincronizar usuario: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// 4. Responder con el usuario creado/actualizado en formato JSON
+	// 5. Responder
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(user)
