@@ -1,6 +1,6 @@
 module github.com/tu-usuario/route-manager
 
-go 1.25.4
+go 1.25.0
 
 require (
 	github.com/jackc/pgx/v5 v5.7.6
