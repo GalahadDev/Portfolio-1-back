@@ -32,7 +32,7 @@ func GetMe(c *gin.Context) {
 func ListUsers(c *gin.Context) {
 	var users []domains.User
 
-	// Filtros opcionales (Query params)
+	// Filtros opcionales
 	// Ejemplo: ?role=driver
 	role := c.Query("role")
 	query := database.DB

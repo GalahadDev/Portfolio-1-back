@@ -42,7 +42,7 @@ func RequireRoles(allowedRoles ...string) gin.HandlerFunc {
 			return
 		}
 
-		// 4. Si tiene permiso, pase adelante
+		// 4. Si tiene permiso
 		c.Next()
 	}
 }

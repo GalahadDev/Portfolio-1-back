@@ -50,9 +50,9 @@ func AuthMiddleware(supabaseURL string) gin.HandlerFunc {
 			return
 		}
 
-		// C. Extraer Datos (Claims)
+		// C. Extraer Datos
 		if claims, ok := token.Claims.(jwt.MapClaims); ok {
-			// 1. ID de Usuario (sub)
+			// 1. ID de Usuario
 			userID, okID := claims["sub"].(string)
 			if !okID {
 				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Token sin User ID"})
@@ -63,7 +63,6 @@ func AuthMiddleware(supabaseURL string) gin.HandlerFunc {
 			email, _ := claims["email"].(string)
 
 			// 3. Metadatos (Nombre, Avatar, Verificado)
-			// Supabase suele guardar los datos de Google en "user_metadata"
 			var name, avatar string
 			var verified bool
 
@@ -80,7 +79,6 @@ func AuthMiddleware(supabaseURL string) gin.HandlerFunc {
 			}
 
 			// D. Guardar en el Contexto de Gin
-			// Para que el handler (register.go) pueda leerlos
 			c.Set("userID", userID)
 			c.Set("userEmail", email)
 			c.Set("userName", name)

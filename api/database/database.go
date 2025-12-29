@@ -20,7 +20,7 @@ func InitDB(dsn string) {
 		Logger: logger.Default.LogMode(logger.Info),
 	}
 
-	// 1. Abrir conexión con la URL que recibimos
+	// 1. Abrir conexión
 	DB, err = gorm.Open(postgres.Open(dsn), config)
 	if err != nil {
 		log.Fatalf("❌ Error crítico: No se pudo abrir la sesión con GORM: %v", err)
