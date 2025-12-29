@@ -134,3 +134,8 @@ Arquitectura diseñada para aislar la data entre diferentes organizaciones.
 | --- | --- | --- | --- |
 | `PATCH` | `/api/v1/waypoints/:id/complete` | Completar entrega y **Subir Foto (POD)** | 🔵 Driver Asignado |
 | `PUT` | `/api/v1/waypoints/:id` | Corregir dirección o datos del punto | 🔴 Admin / Super Admin |
+
+| First Header  | Second Header |
+| ------------- | ------------- |
+| Content Cell  | Content Cell  |
+| Content Cell  | Content Cell  |
