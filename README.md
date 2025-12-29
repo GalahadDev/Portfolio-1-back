@@ -102,14 +102,14 @@ Arquitectura diseñada para aislar la data entre diferentes organizaciones.
 ### 🩺 Health & Auth
 
 | Método | Endpoint | Descripción | Nivel de Acceso |
-| :--- | :--- | :--- | :--- |
+| --- | --- | --- | --- |
 | `GET` | `/api/v1/health` | Verificar estado del servidor y BD | 🟢 Público |
 | `POST` | `/api/v1/auth/register` | Registro o Login con Google | 🟢 Público (Con Token) |
 
 ### 👥 Usuarios y Gestión de Flotas
 
 | Método | Endpoint | Descripción | Nivel de Acceso |
-| :--- | :--- | :--- | :--- |
+| --- | --- | --- | --- |
 | `POST` | `/api/v1/users/join-fleet` | Unirse a una flota mediante código | 🟡 Usuario Inactivo |
 | `GET` | `/api/v1/users/me` | Obtener mi perfil y estado | 🔵 Usuario Activo |
 | `GET` | `/api/v1/users` | Listar conductores de mi flota | 🔴 Admin / Super Admin |
@@ -119,7 +119,7 @@ Arquitectura diseñada para aislar la data entre diferentes organizaciones.
 ### 🚚 Rutas (Routes)
 
 | Método | Endpoint | Descripción | Nivel de Acceso |
-| :--- | :--- | :--- | :--- |
+| --- | --- | --- | --- |
 | `GET` | `/api/v1/routes` | Listar rutas (Admin ve todas, Driver ve suyas) | 🔵 Admin / Driver |
 | `GET` | `/api/v1/routes/:id` | Ver detalle ruta + **URLs Firmadas** | 🔵 Admin / Driver |
 | `POST` | `/api/v1/routes` | Crear nueva ruta con paradas | 🔴 Admin / Super Admin |
@@ -131,7 +131,6 @@ Arquitectura diseñada para aislar la data entre diferentes organizaciones.
 ### 📍 Puntos de Entrega (Waypoints)
 
 | Método | Endpoint | Descripción | Nivel de Acceso |
-| :--- | :--- | :--- | :--- |
+| --- | --- | --- | --- |
 | `PATCH` | `/api/v1/waypoints/:id/complete` | Completar entrega y **Subir Foto (POD)** | 🔵 Driver Asignado |
 | `PUT` | `/api/v1/waypoints/:id` | Corregir dirección o datos del punto | 🔴 Admin / Super Admin |
-
