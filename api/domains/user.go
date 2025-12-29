@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 )
 
 type User struct {
@@ -12,18 +11,21 @@ type User struct {
 	Email         string    `gorm:"uniqueIndex;not null" json:"email"`
 	FullName      string    `json:"full_name"`
 	AvatarURL     string    `json:"avatar_url"`
-	Role          string    `gorm:"default:'driver'" json:"role"`    // driver, admin
-	Status        string    `gorm:"default:'pending'" json:"status"` // pending, active
-	EmailVerified bool      `gorm:"default:false" json:"email_verified"`
+	Role          string    `gorm:"default:'driver'" json:"role"`     // super_admin, admin, driver
+	Status        string    `gorm:"default:'inactive'" json:"status"` // active, inactive
+	EmailVerified bool      `json:"email_verified"`
 
-	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`
-	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at"`
-}
+	// FleetCode: Código único que el Admin comparte
+	FleetCode string `gorm:"uniqueIndex;default:null" json:"fleet_code,omitempty"`
 
-// Hook para generar UUID
-func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
-	if u.ID == uuid.Nil {
-		u.ID = uuid.New()
-	}
-	return
+	// ManagerID: Quién es mi jefe (Self-Referential Foreign Key)
+	ManagerID *uuid.UUID `gorm:"type:uuid;default:null" json:"manager_id,omitempty"`
+
+	// Relaciones de GORM
+	Manager *User  `gorm:"foreignKey:ManagerID" json:"-"`       // Mi Jefe
+	Drivers []User `gorm:"foreignKey:ManagerID" json:"drivers"` // Mis Conductores
+
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt time.Time  `json:"updated_at"`
+	DeletedAt *time.Time `gorm:"index" json:"-"`
 }
