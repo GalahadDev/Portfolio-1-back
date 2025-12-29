@@ -16,7 +16,7 @@ type User struct {
 	EmailVerified bool      `json:"email_verified"`
 
 	// FleetCode: Código único que el Admin comparte
-	FleetCode string `gorm:"uniqueIndex;default:null" json:"fleet_code,omitempty"`
+	FleetCode *string `gorm:"uniqueIndex;default:null" json:"fleet_code,omitempty"`
 
 	// ManagerID: Quién es mi jefe (Self-Referential Foreign Key)
 	ManagerID *uuid.UUID `gorm:"type:uuid;default:null" json:"manager_id,omitempty"`
