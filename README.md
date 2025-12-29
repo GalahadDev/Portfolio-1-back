@@ -100,12 +100,14 @@ Arquitectura diseñada para aislar la data entre diferentes organizaciones.
 ## 📡 Endpoints API
 
 ### 🩺 Health & Auth
+
 | Método | Endpoint | Descripción | Nivel de Acceso |
 | :--- | :--- | :--- | :--- |
 | `GET` | `/api/v1/health` | Verificar estado del servidor y BD | 🟢 Público |
 | `POST` | `/api/v1/auth/register` | Registro o Login con Google | 🟢 Público (Con Token) |
 
 ### 👥 Usuarios y Gestión de Flotas
+
 | Método | Endpoint | Descripción | Nivel de Acceso |
 | :--- | :--- | :--- | :--- |
 | `POST` | `/api/v1/users/join-fleet` | Unirse a una flota mediante código | 🟡 Usuario Inactivo |
@@ -115,6 +117,7 @@ Arquitectura diseñada para aislar la data entre diferentes organizaciones.
 | `DELETE` | `/api/v1/users/:id` | Eliminar usuario (Soft Delete) | 🔴 Admin / Super Admin |
 
 ### 🚚 Rutas (Routes)
+
 | Método | Endpoint | Descripción | Nivel de Acceso |
 | :--- | :--- | :--- | :--- |
 | `GET` | `/api/v1/routes` | Listar rutas (Admin ve todas, Driver ve suyas) | 🔵 Admin / Driver |
@@ -126,6 +129,7 @@ Arquitectura diseñada para aislar la data entre diferentes organizaciones.
 | `PATCH` | `/api/v1/routes/:id/status` | Actualizar estado (In Progress/Completed) | 🔵 Driver Asignado |
 
 ### 📍 Puntos de Entrega (Waypoints)
+
 | Método | Endpoint | Descripción | Nivel de Acceso |
 | :--- | :--- | :--- | :--- |
 | `PATCH` | `/api/v1/waypoints/:id/complete` | Completar entrega y **Subir Foto (POD)** | 🔵 Driver Asignado |
