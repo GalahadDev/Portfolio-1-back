@@ -15,6 +15,7 @@ Backend robusto y escalable para la gestión de rutas logísticas y conductores.
 * **Base de Datos & Auth:** Supabase (PostgreSQL + Auth)
 * **Storage:** Supabase Storage (Buckets Privados)
 * **Seguridad:** JWT (JSON Web Tokens) validado vía JWKS.
+* **Seguridad:** JWT (JSON Web Tokens) validado vía JWKS (JSON Web Key Set).
 
 ## 🏗 Arquitectura
 
@@ -34,6 +35,10 @@ El proyecto sigue una estructura modular orientada al dominio para facilitar la 
 │   ├── middleware   # Auth, RBAC y Validación de Estado
 │   └── services     # Servicios externos (Storage/S3)
 └── main.go
+│   │   ├── routes   # Gestión de Rutas y Waypoints
+│   │   └── users    # Gestión de Usuarios (CRUD)
+│   └── middleware   # Auth (JWKS) y Roles (RBAC)
+└── main.go          # Punto de entrada y definición de rutas
 
 ✨ Funcionalidades Principales
 
@@ -103,3 +108,5 @@ El proyecto sigue una estructura modular orientada al dominio para facilitar la 
     PATCH	/api/v1/waypoints/:id/complete	Completar entrega + Subir Foto
     PUT	/api/v1/waypoints/:id	Corregir datos del punto
     
+    POST    /api/v1/routes	            Crear ruta + Waypoints
+    PATCH	/api/v1/routes/:id/assign	Asignar conductor
