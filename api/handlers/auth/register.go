@@ -10,10 +10,25 @@ import (
 	"github.com/tu-usuario/route-manager/api/domains"
 )
 
+// UserIntentionInput captura la intención del usuario desde el formulario del Front
+type UserIntentionInput struct {
+	Role string `json:"role" binding:"required,oneof=admin driver"`
+}
+
 // RegisterUserFromGoogle sincroniza el usuario de Supabase con la BD local
 func RegisterUserFromGoogle(c *gin.Context) {
 
-	// 1. Recuperar datos del contexto
+	// 1. NUEVO: Leer la intención del usuario (Body JSON)
+	var input UserIntentionInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "Debes especificar un rol válido (admin o driver)",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	// 2. Recuperar datos seguros del contexto
 	userIDStr, exists := c.Get("userID")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "No autenticado"})
@@ -25,7 +40,7 @@ func RegisterUserFromGoogle(c *gin.Context) {
 	avatarVal, _ := c.Get("userAvatar")
 	verifiedVal, _ := c.Get("userVerified")
 
-	// 2. Conversiones seguras
+	// 3. Conversiones seguras y Parsing de datos de Google
 	uid, err := uuid.Parse(userIDStr.(string))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "ID de usuario inválido"})
@@ -49,21 +64,26 @@ func RegisterUserFromGoogle(c *gin.Context) {
 		verified = verifiedVal.(bool)
 	}
 
-	// 3. Buscar usuario en Base de Datos
+	// 4. Buscar usuario en Base de Datos
 	var user domains.User
 	result := database.DB.First(&user, "id = ?", uid)
 
+	// CASO A: USUARIO NUEVO (Creación)
 	if result.RowsAffected == 0 {
 		newUser := domains.User{
 			ID:            uid,
 			Email:         email,
 			FullName:      fullName,
 			AvatarURL:     avatarURL,
-			EmailVerified: verified, // Guardamos si el email está verificado
-			Role:          "driver", // Rol por defecto
-			Status:        "inactive",
-			CreatedAt:     time.Now(),
-			UpdatedAt:     time.Now(),
+			EmailVerified: verified,
+
+			Role: input.Role,
+
+			// Seguridad: Siempre nace inactivo
+			Status: "inactive",
+
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
 		}
 
 		if err := database.DB.Create(&newUser).Error; err != nil {
@@ -72,24 +92,25 @@ func RegisterUserFromGoogle(c *gin.Context) {
 		}
 
 		c.JSON(http.StatusCreated, gin.H{
-			"message": "Usuario registrado exitosamente",
+			"message": "Solicitud de registro creada. Estado pendiente.",
 			"user":    newUser,
 		})
 
 	} else {
+		// CASO B: USUARIO EXISTENTE (Login recurrente)
+		// Solo actualizamos datos cosméticos de Google (Nombre, Avatar)
 		user.FullName = fullName
 		user.AvatarURL = avatarURL
 		user.EmailVerified = verified
 		user.UpdatedAt = time.Now()
 
-		// Guardamos los cambios
 		if err := database.DB.Save(&user).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error actualizando usuario: " + err.Error()})
 			return
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"message": "Datos de usuario sincronizados",
+			"message": "Login exitoso",
 			"user":    user,
 		})
 	}

@@ -9,17 +9,14 @@ import (
 	"github.com/tu-usuario/route-manager/api/utils"
 )
 
+// Input para actualizar
 type UpdateUserInput struct {
-	FullName string `json:"full_name"`
-	Role     string `json:"role"`   // driver, admin
-	Status   string `json:"status"` // active, inactive
+	Role   string `json:"role"`
+	Status string `json:"status"`
 }
 
 func UpdateUser(c *gin.Context) {
 	targetID := c.Param("id")
-
-	// 1. Obtener quien hace la petición (Super Admin)
-	// (Asumimos que el middleware ya validó que quien llama es Super Admin o Admin)
 
 	var input UpdateUserInput
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -41,9 +38,14 @@ func UpdateUser(c *gin.Context) {
 	if input.Role != "" {
 		user.Role = input.Role
 
-		// Si lo estamos promoviendo a ADMIN y no tiene código, se lo generamos.
-		if input.Role == "admin" && user.FleetCode == "" {
-			user.FleetCode = utils.GenerateFleetCode()
+		// 1. Verificamos si es nil
+		if input.Role == "admin" && user.FleetCode == nil {
+
+			// 2. Generamos el código en una variable temporal
+			newCode := utils.GenerateFleetCode()
+
+			// 3. Asignamos la dirección de memoria (&) al puntero
+			user.FleetCode = &newCode
 		}
 	}
 
