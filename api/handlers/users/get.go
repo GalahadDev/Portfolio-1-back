@@ -30,29 +30,38 @@ func GetMe(c *gin.Context) {
 
 // ListUsers devuelve todos los usuarios (Útil para paneles de admin o selectores)
 func ListUsers(c *gin.Context) {
+	requestingUserID, _ := c.Get("userID")
+
+	// 1. Saber quién está pidiendo la lista
+	var currentUser domains.User
+	database.DB.First(&currentUser, "id = ?", requestingUserID)
+
 	var users []domains.User
+	query := database.DB.Model(&domains.User{})
 
-	// Filtros opcionales
-	// Ejemplo: ?role=driver
-	role := c.Query("role")
-	query := database.DB
-
-	if role != "" {
-		query = query.Where("role = ?", role)
+	// 2. FILTRO DE JERARQUÍA
+	switch currentUser.Role {
+	case "super_admin":
+		// Super Admin ve a TODOS (Admins y Drivers)
+	case "admin":
+		// Admin normal SOLO ve a SUS conductores
+		query = query.Where("manager_id = ?", currentUser.ID)
+	default:
+		// Un driver no debería poder listar usuarios
+		c.JSON(http.StatusForbidden, gin.H{"error": "No tienes permiso para listar usuarios"})
+		return
 	}
 
-	// Buscar todos
+	// Ejecutar
 	if err := query.Find(&users).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error obteniendo usuarios"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al obtener usuarios"})
 		return
 	}
 
 	c.JSON(http.StatusOK, users)
 }
-
 func GetUser(c *gin.Context) {
-	id := c.Param("id") // Viene de la URL /users/:id
-
+	id := c.Param("id")
 	var user domains.User
 	// Buscamos por el ID recibido en la ruta
 	if err := database.DB.First(&user, "id = ?", id).Error; err != nil {

@@ -47,63 +47,67 @@ func main() {
 	{
 		api.GET("/health", health.HealthCheck) // health check del servidor
 
-		// ========== NIVEL 1: AUTENTICACIÓN (Tener Token Válido) ==========
+		// ========== NIVEL 1: AUTENTICACIÓN ==========
 		protected := api.Group("/")
 		protected.Use(middleware.AuthMiddleware(cfg.SupabaseURL))
 		{
-			// A. REGISTRO: Accesible aunque el status sea 'inactive'
+			// A. REGISTRO
 			protected.POST("/auth/register", auth.RegisterUserFromGoogle)
 
-			// ========== NIVEL 2: AUTORIZACIÓN (Tener Status 'active') ==========
-			// Todo lo que esté dentro de 'activeUsers' requiere que el admin te haya aprobado
+			// B. UNIRSE A FLOTA
+			protected.POST("/users/join-fleet", users.JoinFleet)
+
+			// ========== NIVEL 2: AUTORIZACIÓN ==========
+
 			activeUsers := protected.Group("/")
 			activeUsers.Use(middleware.RequireActiveUser())
 			{
 				// --- USUARIOS ---
 				activeUsers.GET("/users/me", users.GetMe)
 
-				// Rutas SOLO ADMINS
+				// Rutas SOLO ADMINS (y SUPER ADMINS)
 				adminOnly := activeUsers.Group("/users")
-				adminOnly.Use(middleware.RequireRoles("admin"))
+				// Permitimos que el Super Admin también gestione usuarios
+				adminOnly.Use(middleware.RequireRoles("admin", "super_admin"))
 				{
-					adminOnly.GET("", users.ListUsers)         // Listar todos
+					adminOnly.GET("", users.ListUsers)         // Listar todos (Filtrado por lógica de negocio)
 					adminOnly.GET("/:id", users.GetUser)       // Ver otro usuario específico
-					adminOnly.PUT("/:id", users.UpdateUser)    // Editar otro usuario (Aquí se activan cuentas)
+					adminOnly.PUT("/:id", users.UpdateUser)    // Editar/Promover usuario
 					adminOnly.DELETE("/:id", users.DeleteUser) // Borrar usuario
 				}
 
-				// --- RUTAS ---
+				// --- RUTAS (ROUTES) ---
 				routesGroup := activeUsers.Group("/routes")
 				{
-					// Crear (Admin)
-					routesGroup.POST("", middleware.RequireRoles("admin"), routes.CreateRoute)
+					// Crear (Admin/SuperAdmin)
+					routesGroup.POST("", middleware.RequireRoles("admin", "super_admin"), routes.CreateRoute)
 
 					// Listar (Admin y Conductor)
-					// NOTA: Quité el middleware "admin" aquí para que los conductores puedan ver SU lista
+					// Sin middleware de rol: la lógica interna filtra "Mis Rutas" vs "Todas"
 					routesGroup.GET("", routes.ListRoutes)
 
 					// Ver Detalle
 					routesGroup.GET("/:id", routes.GetRouteByID)
 
-					// Editar (Admin)
-					routesGroup.PUT("/:id", middleware.RequireRoles("admin"), routes.UpdateRoute)
+					// Editar (Admin/SuperAdmin)
+					routesGroup.PUT("/:id", middleware.RequireRoles("admin", "super_admin"), routes.UpdateRoute)
 
-					// Eliminar (Admin)
-					routesGroup.DELETE("/:id", middleware.RequireRoles("admin"), routes.DeleteRoute)
+					// Eliminar (Admin/SuperAdmin)
+					routesGroup.DELETE("/:id", middleware.RequireRoles("admin", "super_admin"), routes.DeleteRoute)
 
 					// Operaciones
-					routesGroup.PATCH("/:id/assign", middleware.RequireRoles("admin"), routes.AssignDriver)
+					routesGroup.PATCH("/:id/assign", middleware.RequireRoles("admin", "super_admin"), routes.AssignDriver)
 					routesGroup.PATCH("/:id/status", routes.UpdateRouteStatus)
 				}
 
-				// --- WAYPOINTS (PUNTOS DE ENTREGA) ---
+				// --- WAYPOINTS ---
 				waypointsGroup := activeUsers.Group("/waypoints")
 				{
-					// Completar entrega
+					// Completar entrega (Conductor)
 					waypointsGroup.PATCH("/:id/complete", waypoints.MarkWaypointComplete)
 
-					// Editar dirección (Admin)
-					waypointsGroup.PUT("/:id", middleware.RequireRoles("admin"), waypoints.UpdateWaypoint)
+					// Editar dirección (Admin/SuperAdmin)
+					waypointsGroup.PUT("/:id", middleware.RequireRoles("admin", "super_admin"), waypoints.UpdateWaypoint)
 				}
 			}
 		}
