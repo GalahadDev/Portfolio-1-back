@@ -35,7 +35,7 @@ El proyecto sigue una estructura modular orientada al dominio (DDD) para facilit
 │   ├── services     # Servicios externos (Storage)
 │   └── utils        # Generadores de códigos, helpers
 └── main.go          # Punto de entrada
-
+```
 ✨ Funcionalidades Principales
 
 🏢 Gestión de Flotas (Multi-tenancy)
@@ -84,6 +84,7 @@ Arquitectura diseñada para aislar la data entre diferentes organizaciones.
                                     cd route-manager
 • Configurar Variables de Entorno: Crea un archivo .env en la raíz del proyecto basándote en el ejemplo
 
+```text
     PORT=""
     SUPABASE_URL=""
     SUPABASE_SERVICE_ROLE_KEY=
@@ -92,12 +93,11 @@ Arquitectura diseñada para aislar la data entre diferentes organizaciones.
     DB_HOST=""
     DB_PORT=""
     DB_NAME=""
+```
 
 • Instalar Dependencias: go mod tidy
 
 • Ejecutar el Servidor: go run main.go
-
-```
 
 ## 📡 Endpoints API
 
