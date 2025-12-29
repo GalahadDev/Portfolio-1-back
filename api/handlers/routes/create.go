@@ -42,7 +42,7 @@ func CreateRoute(c *gin.Context) {
 	}
 
 	// 3. Mapear DTO a Entidades de Dominio
-	// Preparamos los waypoints
+
 	var domainWaypoints []domains.Waypoint
 	for _, wp := range input.Waypoints {
 		domainWaypoints = append(domainWaypoints, domains.Waypoint{
@@ -67,10 +67,10 @@ func CreateRoute(c *gin.Context) {
 		ScheduledDate:        input.ScheduledDate,
 		TotalDistanceKm:      input.TotalDistanceKm,
 		EstimatedDurationMin: input.EstimatedDurationMin,
-		Waypoints:            domainWaypoints, // GORM creará esto mágicamente
+		Waypoints:            domainWaypoints,
 	}
 
-	// 4. Guardar en Transacción (GORM lo hace automático con las asociaciones)
+	// 4. Guardar en Transacción
 	if err := database.DB.Create(&newRoute).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "No se pudo crear la ruta: " + err.Error()})
 		return

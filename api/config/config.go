@@ -24,13 +24,13 @@ func Load() (*Config, error) {
 		port = "8080"
 	}
 
-	// 2. URL de Supabase (Para auth/JWKS)
+	// 2. URL de Supabase
 	supabaseURL := os.Getenv("SUPABASE_URL")
 	if supabaseURL == "" {
 		return nil, fmt.Errorf("SUPABASE_URL es requerida")
 	}
 
-	// 3. Base de Datos: LÓGICA NUEVA (Variables Separadas)
+	// 3. Base de Datos
 	var dbURL string
 
 	dbUser := os.Getenv("DB_USER")
@@ -39,9 +39,8 @@ func Load() (*Config, error) {
 	dbPort := os.Getenv("DB_PORT")
 	dbName := os.Getenv("DB_NAME")
 
-	// Si existen las variables separadas, armamos la URL nosotros mismos
 	if dbUser != "" && dbPass != "" && dbHost != "" {
-		// Formato: postgres://user:pass@host:port/dbname?sslmode=require
+
 		if dbPort == "" {
 			dbPort = "5432"
 		}
@@ -53,7 +52,6 @@ func Load() (*Config, error) {
 			dbUser, dbPass, dbHost, dbPort, dbName)
 
 	} else {
-		// Si no, intentamos leer la variable antigua DATABASE_URL
 		dbURL = os.Getenv("DATABASE_URL")
 	}
 

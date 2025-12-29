@@ -12,7 +12,7 @@ type User struct {
 	Email         string    `gorm:"uniqueIndex;not null" json:"email"`
 	FullName      string    `json:"full_name"`
 	AvatarURL     string    `json:"avatar_url"`
-	Role          string    `gorm:"default:'driver'" json:"role"`    // driver, admin, etc.
+	Role          string    `gorm:"default:'driver'" json:"role"`    // driver, admin
 	Status        string    `gorm:"default:'pending'" json:"status"` // pending, active
 	EmailVerified bool      `gorm:"default:false" json:"email_verified"`
 
@@ -20,7 +20,7 @@ type User struct {
 	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 }
 
-// Hook para generar UUID antes de crear si no viene
+// Hook para generar UUID
 func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
 	if u.ID == uuid.Nil {
 		u.ID = uuid.New()

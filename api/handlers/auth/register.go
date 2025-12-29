@@ -13,7 +13,7 @@ import (
 // RegisterUserFromGoogle sincroniza el usuario de Supabase con la BD local
 func RegisterUserFromGoogle(c *gin.Context) {
 
-	// 1. Recuperar datos del contexto (inyectados por AuthMiddleware)
+	// 1. Recuperar datos del contexto
 	userIDStr, exists := c.Get("userID")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "No autenticado"})
@@ -25,7 +25,7 @@ func RegisterUserFromGoogle(c *gin.Context) {
 	avatarVal, _ := c.Get("userAvatar")
 	verifiedVal, _ := c.Get("userVerified")
 
-	// 2. Conversiones seguras (evitar panic si son nil)
+	// 2. Conversiones seguras
 	uid, err := uuid.Parse(userIDStr.(string))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "ID de usuario inválido"})
@@ -54,9 +54,6 @@ func RegisterUserFromGoogle(c *gin.Context) {
 	result := database.DB.First(&user, "id = ?", uid)
 
 	if result.RowsAffected == 0 {
-		// ==========================================
-		// CASO 1: USUARIO NUEVO -> CREAR
-		// ==========================================
 		newUser := domains.User{
 			ID:            uid,
 			Email:         email,
@@ -64,7 +61,7 @@ func RegisterUserFromGoogle(c *gin.Context) {
 			AvatarURL:     avatarURL,
 			EmailVerified: verified, // Guardamos si el email está verificado
 			Role:          "driver", // Rol por defecto
-			Status:        "active",
+			Status:        "inactive",
 			CreatedAt:     time.Now(),
 			UpdatedAt:     time.Now(),
 		}
@@ -80,10 +77,6 @@ func RegisterUserFromGoogle(c *gin.Context) {
 		})
 
 	} else {
-		// ==========================================
-		// CASO 2: USUARIO EXISTENTE -> ACTUALIZAR
-		// ==========================================
-		// Sincronizamos datos por si cambiaron en Google (foto nueva, nombre corregido, etc.)
 		user.FullName = fullName
 		user.AvatarURL = avatarURL
 		user.EmailVerified = verified
