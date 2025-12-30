@@ -12,7 +12,7 @@ import (
 type UpdateRouteInput struct {
 	Name                 string     `json:"name"`
 	ScheduledDate        *time.Time `json:"scheduled_date"`
-	TotalDistanceKm      int        `json:"total_distance_km"`
+	TotalDistanceKm      float64    `json:"total_distance_km"`
 	EstimatedDurationMin int        `json:"estimated_duration_min"`
 }
 

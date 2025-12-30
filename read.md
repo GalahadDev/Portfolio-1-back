@@ -52,6 +52,24 @@ Arquitectura diseñada para aislar la data entre diferentes organizaciones.
 
     •   Códigos de Flota: Sistema de invitación automática. Los Admins poseen un código único (ej: A7X-99) para enrolar conductores a su equipo.
 
+🧠 Optimización de Rutas (IA)
+
+Motor algorítmico propio implementado en Go (sin dependencias externas costosas).
+
+    • Estrategia Híbrida: Combina Nearest Neighbor (para inicialización rápida) y Simulated Annealing (Recocido Simulado) para refinamiento y escape de mínimos locales.
+
+    • Resultado: Reordenamiento inteligente de paradas para minimizar la distancia total recorrida.
+
+📊 Dashboard Operativo
+
+Sistema de analítica en tiempo real filtrado por rol.
+
+    • KPIs: Rutas Pendientes, Entregas Completadas Hoy, Total de Conductores Activos.
+
+    • Gráficos: Historial de entregas de los últimos 7 días.
+
+    • Context Aware: El Super Admin ve métricas globales; el Admin ve solo el rendimiento de su empresa.
+
 🔐 Seguridad y Autenticación
 
     • Seguridad por Defecto: Todo usuario nuevo inicia con estado inactive para prevenir accesos no autorizados.
@@ -105,33 +123,42 @@ Arquitectura diseñada para aislar la data entre diferentes organizaciones.
 | Método | Endpoint | Descripción | Nivel de Acceso |
 | --- | --- | --- | --- |
 | `GET` | `/api/v1/health` | Verificar estado del servidor y BD | 🟢 Público |
-| `POST` | `/api/v1/auth/register` | Registro o Login con Google | 🟢 Público (Con Token) |
+| `POST` | `/api/v1/auth/register` | Registro (con Rol) o Login | 🟢 Público (Con Token) |
 
-### 👥 Usuarios y Gestión de Flotas
-
-| Método | Endpoint | Descripción | Nivel de Acceso |
-| --- | --- | --- | --- |
-| `POST` | `/api/v1/users/join-fleet` | Unirse a una flota mediante código | 🟡 Usuario Inactivo |
-| `GET` | `/api/v1/users/me` | Obtener mi perfil y estado | 🔵 Usuario Activo |
-| `GET` | `/api/v1/users` | Listar conductores de mi flota | 🔴 Admin / Super Admin |
-| `PUT` | `/api/v1/users/:id` | Promover a Admin o activar usuario | 🔴 Admin / Super Admin |
-| `DELETE` | `/api/v1/users/:id` | Eliminar usuario (Soft Delete) | 🔴 Admin / Super Admin |
-
-### 🚚 Rutas (Routes)
+### 📊 Dashboard & Analytics
 
 | Método | Endpoint | Descripción | Nivel de Acceso |
 | --- | --- | --- | --- |
-| `GET` | `/api/v1/routes` | Listar rutas (Admin ve todas, Driver ve suyas) | 🔵 Admin / Driver |
-| `GET` | `/api/v1/routes/:id` | Ver detalle ruta + **URLs Firmadas** | 🔵 Admin / Driver |
-| `POST` | `/api/v1/routes` | Crear nueva ruta con paradas | 🔴 Admin / Super Admin |
-| `PUT` | `/api/v1/routes/:id` | Editar datos base de la ruta | 🔴 Admin / Super Admin |
+| `GET` | `/api/v1/dashboard/stats` | KPIs y Datos para Gráficos | 🔴 Admin / Super Admin |
+
+### 🚚 Rutas (Routes) & Optimización
+
+| Método | Endpoint | Descripción | Nivel de Acceso |
+| --- | --- | --- | --- |
+| `GET` | `/api/v1/routes` | Listar rutas (Filtrado por Tenancy) | 🔵 Admin / Driver |
+| `GET` | `/api/v1/routes/:id` | Ver detalle + **URLs Firmadas** | 🔵 Admin / Driver |
+| `POST` | `/api/v1/routes` | Crear nueva ruta | 🔴 Admin / Super Admin |
+| `POST` | `/api/v1/routes/:id/optimize` | **Optimizar Ruta (Algoritmo IA)** | 🔴 Admin / Super Admin |
+| `PATCH` | `/api/v1/routes/:id/assign` | Asignar conductor | 🔴 Admin / Super Admin |
+| `PATCH` | `/api/v1/routes/:id/status` | Actualizar estado | 🔵 Driver Asignado |
+| `PUT` | `/api/v1/routes/:id` | Editar datos base | 🔴 Admin / Super Admin |
 | `DELETE` | `/api/v1/routes/:id` | Eliminar ruta | 🔴 Admin / Super Admin |
-| `PATCH` | `/api/v1/routes/:id/assign` | Asignar conductor a la ruta | 🔴 Admin / Super Admin |
-| `PATCH` | `/api/v1/routes/:id/status` | Actualizar estado (In Progress/Completed) | 🔵 Driver Asignado |
+
+### 👥 Usuarios y Flotas
+
+| Método | Endpoint | Descripción | Nivel de Acceso |
+| --- | --- | --- | --- |
+| `POST` | `/api/v1/users/join-fleet` | Unirse a flota mediante código | 🟡 Usuario Inactivo |
+| `GET` | `/api/v1/users/me` | Obtener mi perfil | 🔵 Usuario Activo |
+| `GET` | `/api/v1/users` | Listar mi personal | 🔴 Admin / Super Admin |
+| `PUT` | `/api/v1/users/:id` | Gestión de usuarios | 🔴 Admin / Super Admin |
+| `DELETE` | `/api/v1/users/:id` | Eliminar usuario | 🔴 Admin / Super Admin |
 
 ### 📍 Puntos de Entrega (Waypoints)
 
 | Método | Endpoint | Descripción | Nivel de Acceso |
 | --- | --- | --- | --- |
-| `PATCH` | `/api/v1/waypoints/:id/complete` | Completar entrega y **Subir Foto (POD)** | 🔵 Driver Asignado |
-| `PUT` | `/api/v1/waypoints/:id` | Corregir dirección o datos del punto | 🔴 Admin / Super Admin |
+| `PATCH` | `/api/v1/waypoints/:id/complete` | Completar entrega + **Subir Foto** | 🔵 Driver Asignado |
+| `PUT` | `/api/v1/waypoints/:id` | Corregir datos del punto | 🔴 Admin / Super Admin |
+
+Desarrollado con ❤️ y mucho café ☕.
