@@ -23,18 +23,22 @@ El proyecto sigue una estructura modular orientada al dominio (DDD) para facilit
 ```text
 ├── api
 │   ├── config       # Configuración de entorno
-│   ├── database     # Conexión a BD (Singleton)
+│   ├── database     # Conexión Singleton a BD
 │   ├── domains      # Modelos de datos (Structs)
-│   ├── handlers     # Lógica de negocio
-│   │   ├── auth     # Registro
-│   │   ├── health   # Health Checks
-│   │   ├── routes   # Gestión de Rutas
-│   │   ├── users    # Gestión de Usuarios y Flotas
-│   │   └── waypoints # Puntos de Entrega & POD
+│   ├── handlers     # Controladores / Lógica de Negocio
+│   │   ├── auth        # Registro y Login
+│   │   ├── dashboard   # Métricas y KPIs
+│   │   ├── health      # Health Checks
+│   │   ├── routes      # Gestión y Optimización de Rutas
+│   │   ├── users       # Gestión de Usuarios y Flotas
+│   │   └── waypoints   # Puntos de Entrega & POD
 │   ├── middleware   # RBAC, Auth y Validación de Estado
-│   ├── services     # Servicios externos (Storage)
-│   └── utils        # Generadores de códigos, helpers
-└── main.go          # Punto de entrada
+│   ├── services     # Servicios Externos y Algoritmos
+│   │   ├── optimization # Algoritmo SA + Nearest Neighbor
+│   │   └── storage      # Gestión de Buckets S3/Supabase
+│   └── utils        # Helpers y Generadores
+│
+└── main.go          # Punto de entrada y Router
 ```
 
 ✨ Funcionalidades Principales
