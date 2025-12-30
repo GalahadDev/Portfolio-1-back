@@ -12,23 +12,15 @@ import (
 
 // UserIntentionInput captura la intención del usuario desde el formulario del Front
 type UserIntentionInput struct {
-	Role string `json:"role" binding:"required,oneof=admin driver"`
+	// CAMBIO 1: Quitamos 'required'. Permitimos que venga vacío (para Logins).
+	// Mantenemos 'oneof' para que SI envían algo, sea válido.
+	Role string `json:"role" binding:"oneof=admin driver"`
 }
 
 // RegisterUserFromGoogle sincroniza el usuario de Supabase con la BD local
 func RegisterUserFromGoogle(c *gin.Context) {
 
-	// 1. NUEVO: Leer la intención del usuario (Body JSON)
-	var input UserIntentionInput
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error":   "Debes especificar un rol válido (admin o driver)",
-			"details": err.Error(),
-		})
-		return
-	}
-
-	// 2. Recuperar datos seguros del contexto
+	// 1. Recuperar datos seguros del contexto (Token)
 	userIDStr, exists := c.Get("userID")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "No autenticado"})
@@ -39,6 +31,21 @@ func RegisterUserFromGoogle(c *gin.Context) {
 	nameVal, _ := c.Get("userName")
 	avatarVal, _ := c.Get("userAvatar")
 	verifiedVal, _ := c.Get("userVerified")
+
+	// 2. Intentar leer la intención del usuario (Body JSON)
+	var input UserIntentionInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		// CAMBIO 2: Si el error es "EOF" significa que el body vino vacío.
+		// Eso es normal en un Login, así que lo ignoramos por ahora.
+		// Si es otro error (ej: role="hacker"), entonces sí fallamos.
+		if err.Error() != "EOF" {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error":   "Datos inválidos en la solicitud",
+				"details": err.Error(),
+			})
+			return
+		}
+	}
 
 	// 3. Conversiones seguras y Parsing de datos de Google
 	uid, err := uuid.Parse(userIDStr.(string))
@@ -68,8 +75,17 @@ func RegisterUserFromGoogle(c *gin.Context) {
 	var user domains.User
 	result := database.DB.First(&user, "id = ?", uid)
 
-	// CASO A: USUARIO NUEVO (Creación)
+	// CASO A: USUARIO NUEVO
 	if result.RowsAffected == 0 {
+
+		// Validación manual.
+		if input.Role == "" {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Para registrarte por primera vez debes seleccionar un rol (Soy Conductor o Soy Administrador).",
+			})
+			return
+		}
+
 		newUser := domains.User{
 			ID:            uid,
 			Email:         email,
@@ -79,7 +95,6 @@ func RegisterUserFromGoogle(c *gin.Context) {
 
 			Role: input.Role,
 
-			// Seguridad: Siempre nace inactivo
 			Status: "inactive",
 
 			CreatedAt: time.Now(),
@@ -98,6 +113,8 @@ func RegisterUserFromGoogle(c *gin.Context) {
 
 	} else {
 		// CASO B: USUARIO EXISTENTE (Login recurrente)
+		// Aquí NO miramos input.Role. Ignoramos si viene vacío o lleno.
+
 		// Solo actualizamos datos cosméticos de Google (Nombre, Avatar)
 		user.FullName = fullName
 		user.AvatarURL = avatarURL
