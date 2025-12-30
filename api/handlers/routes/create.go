@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -24,15 +25,24 @@ type WaypointDTO struct {
 type CreateRouteInput struct {
 	Name                 string        `json:"name" binding:"required"`
 	ScheduledDate        *time.Time    `json:"scheduled_date"`
-	TotalDistanceKm      int           `json:"total_distance_km"`
+	TotalDistanceKm      float64       `json:"total_distance_km"` // Cambiado a float64 (estándar para km)
 	EstimatedDurationMin int           `json:"estimated_duration_min"`
-	Waypoints            []WaypointDTO `json:"waypoints" binding:"required,min=1"` // Mínimo 1 punto
+	Waypoints            []WaypointDTO `json:"waypoints" binding:"required,min=1"`
 }
 
 func CreateRoute(c *gin.Context) {
 	// 1. Obtener ID del Creador (Admin) del contexto
-	creatorIDStr, _ := c.Get("userID")
-	creatorUUID, _ := uuid.Parse(creatorIDStr.(string))
+	// Esto es VITAL para que el Dashboard sepa que esta ruta es TUYA.
+	creatorIDStr, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Usuario no autenticado"})
+		return
+	}
+	creatorUUID, err := uuid.Parse(creatorIDStr.(string))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID de usuario inválido"})
+		return
+	}
 
 	// 2. Validar JSON
 	var input CreateRouteInput
@@ -42,11 +52,10 @@ func CreateRoute(c *gin.Context) {
 	}
 
 	// 3. Mapear DTO a Entidades de Dominio
-
 	var domainWaypoints []domains.Waypoint
 	for _, wp := range input.Waypoints {
 		domainWaypoints = append(domainWaypoints, domains.Waypoint{
-			ID:            uuid.New(), // Generamos ID aquí
+			ID:            uuid.New(),
 			Address:       wp.Address,
 			Latitude:      wp.Latitude,
 			Longitude:     wp.Longitude,
@@ -59,11 +68,14 @@ func CreateRoute(c *gin.Context) {
 
 	// Preparamos la Ruta
 	newRoute := domains.Route{
-		ID:                   uuid.New(),
-		CreatorID:            creatorUUID, // El admin logueado
-		DriverID:             nil,         // Se asigna después
-		Name:                 input.Name,
-		Status:               "draft",
+		ID:        uuid.New(),
+		CreatorID: creatorUUID,
+		DriverID:  nil, // Se asigna después
+		Name:      input.Name,
+
+		// NOTA: Usas "draft".
+		Status: "draft",
+
 		ScheduledDate:        input.ScheduledDate,
 		TotalDistanceKm:      input.TotalDistanceKm,
 		EstimatedDurationMin: input.EstimatedDurationMin,
@@ -76,8 +88,11 @@ func CreateRoute(c *gin.Context) {
 		return
 	}
 
+	// Corrección del mensaje: Usar Sprintf para formatear el número correctamente
+	message := fmt.Sprintf("Ruta creada con %d paradas", len(domainWaypoints))
+
 	c.JSON(http.StatusCreated, gin.H{
-		"message": "Ruta creada con " + string(rune(len(domainWaypoints))) + " paradas",
+		"message": message,
 		"route":   newRoute,
 	})
 }

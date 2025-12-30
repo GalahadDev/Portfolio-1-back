@@ -15,10 +15,12 @@ type Route struct {
 	Name                 string     `gorm:"not null" json:"name"`
 	Status               string     `gorm:"default:'draft'" json:"status"`
 	ScheduledDate        *time.Time `json:"scheduled_date"`
-	TotalDistanceKm      int        `json:"total_distance_km"`
+	TotalDistanceKm      float64    `json:"total_distance_km"`
 	EstimatedDurationMin int        `json:"estimated_duration_min"`
 
-	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`
+	CreatedAt time.Time  `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt time.Time  `json:"updated_at"`
+	DeletedAt *time.Time `gorm:"index" json:"-"`
 
 	// Relaciones
 	Creator   User       `gorm:"foreignKey:CreatorID" json:"creator,omitempty"`
