@@ -112,8 +112,6 @@ func RegisterUserFromGoogle(c *gin.Context) {
 		})
 
 	} else {
-		// CASO B: USUARIO EXISTENTE (Login recurrente)
-		// Aquí NO miramos input.Role. Ignoramos si viene vacío o lleno.
 
 		// Solo actualizamos datos cosméticos de Google (Nombre, Avatar)
 		user.FullName = fullName

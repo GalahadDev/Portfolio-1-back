@@ -97,7 +97,7 @@ func main() {
 					routesGroup.DELETE("/:id", middleware.RequireRoles("admin", "super_admin"), routes.DeleteRoute)
 
 					// Operaciones
-					routesGroup.PATCH("/:id/assign", middleware.RequireRoles("admin", "super_admin"), routes.AssignDriver) // Nota: Asegúrate de que tu handler se llame AssignDriver o AssignRoute según tu código anterior
+					routesGroup.PATCH("/:id/assign", middleware.RequireRoles("admin", "super_admin"), routes.AssignDriver)
 					routesGroup.PATCH("/:id/status", routes.UpdateRouteStatus)
 
 					// Optimizacion de rutas
